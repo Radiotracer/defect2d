@@ -57,25 +57,41 @@ for n=1:nNoise_r
     end;  
 end
 
+load('resolution_multiNoise.mat');
+dscL_r_mean=mean(dscL_r);
+dscL_r_stderr=std(dscL_r)/sqrt(nNoise_r);
+figure;errorbar(sigmas,dscL_r_mean,dscL_r_stderr,'b*-');
+ xlabel('Measured Sigma');ylabel('DSC');title('Segmentation Results (Resolution)');
 
+fVals_r_mean=mean(fVals_r);
+fVals_r_stderr=std(fVals_r)/sqrt(nNoise_r);
+figure;errorbar(sigmas,fVals_r_mean,fVals_r_stderr,'b*-');
+xlabel('Measured Sigma');ylabel('fVal');title('Final Objective Function(Resolution)');
 
+actL_r=pVals_r(:,:,4+2*nRad+1:4+2*nRad+nSeg);
+actL_r_mean=mean(actL_r);
+actL_r_stderr=std(actL_r)/sqrt(nNoise_r);
 
+formats_r=['ro-';  'bo-'; 'go-'; 'mo-' ;'yo-'; 'co-';'r*-'];
+figure;plot(1:nSeg,tp_r(4+2*nRad+1:4+2*nRad+nSeg),'ko-');hold on;
+xlabel('Segment Index');ylabel('Activity Estimation');title('True Sigma=6.37');
+strLegend_r=cell(nr+1,1);
+strLegend_r{1}='truth';
+for k=1:nr
+    plot(1:nSeg,squeeze(actL_r_mean(1,k,:)),formats_r(k,:));
+    strLegend_r{k+1}=sprintf('Sigma=%.2f',sigmas(k));   
+end
+legend(strLegend_r); 
+hold off;
 
-% formats_r=['ro-';  'bo-'; 'go-'; 'mo-' ;'yo-'; 'co-';'r*-'];
-% figure;plot(1:nSeg,tp_r(4+2*nRad+1:4+2*nRad+nSeg),'ko-');hold on;
-% xlabel('Segment Index');ylabel('Activity Estimation');title('True Sigma=6.37');
-% strLegend_r=cell(nr+1,1);
-% strLegend_r{1}='truth';
-% for k=1:nr
-%     actL_r=pVals_r(k,4+2*nRad+1:4+2*nRad+nSeg);
-%     plot(1:nSeg,actL_r,formats_r(k,:));
-%     strLegend_r{k+1}=sprintf('Sigma=%.2f',sigmas(k));   
-% end
-% legend(strLegend_r);
-% 
-% hold off;
-% figure; plot(sigmas,dscL_r,'b*-');
-% xlabel('Measured Sigma');ylabel('DSC');title('Segmentation Results (Resolution)');
-% 
-% figure; plot(sigmas,fVals_r,'b*-');
-% xlabel('Measured Sigma');ylabel('fVal');title('Final Objective Function(Resolution)');
+figure;plot(1:nSeg,tp_r(4+2*nRad+1:4+2*nRad+nSeg),'ko-');hold on;
+xlabel('Segment Index');ylabel('Activity Estimation');title('True Sigma=6.37');
+strLegend_r=cell(nr+1,1);
+strLegend_r{1}='truth';
+for k=1:nr
+    errorbar(1:nSeg,squeeze(actL_r_mean(1,k,:)),squeeze(actL_r_stderr(1,k,:)),formats_r(k,:));
+    strLegend_r{k+1}=sprintf('Sigma=%.2f',sigmas(k));   
+end
+legend(strLegend_r); 
+hold off;
+

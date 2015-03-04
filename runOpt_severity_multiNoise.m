@@ -7,6 +7,7 @@
 % PET resolution FWHM=5mm, Sigma=6.0mm/(2sqrt(2ln2))=6.0/2.3548=2.5480mm=6.37p
 
 %% Defect=50,  50% severity, 40 degree extent
+clear;close all;
 global gaussFilter;
 gaussFilter= fspecial('gaussian', [29 29], 6.37);
 global imgMd;
@@ -39,7 +40,7 @@ options_s = optimoptions(@fmincon,...
 
 trueGaussFilter=fspecial('gaussian', [29 29], 6.37);
 
-nNoise_s=5;
+nNoise_s=10;
 ns=6;
 severity=zeros(1,ns);
 tps_s=repmat(tp_s,[ns 1]);
@@ -59,26 +60,45 @@ for k=1:ns
         nImg_s= double(1e+15*imnoise(img_s(:,:,k)*1e-15,'poisson'));
         imgMd=imfilter(nImg_s,trueGaussFilter,'same');    
         measuredImgs_s(:,:,k,n)=imgMd;
-        [pVals_s(n,:,k),fVals_s(k)] = fmincon(@objConFunc,initP_s,[],[],[],[],[],[],@noconstraint,options_s); 
-        [dscL_s(k), dm] = calcDSC(pVals_s(k,:), tps_s(k,:));       
+        [pVals_s(n,:,k),fVals_s(k,n)] = fmincon(@objConFunc,initP_s,[],[],[],[],[],[],@noconstraint,options_s); 
+        [dscL_s(k,n), dm] = calcDSC(pVals_s(n,:,k), tps_s(k,:));       
     end
 end
 
-% formats_s=['ro-';  'bo-'; 'go-'; 'mo-' ;'yo-'; 'co-'];
-% figure;plot(1:nSeg,tp_s(4+2*nRad+1:4+2*nRad+nSeg),'ko-');
-% xlabel('Segment Index');ylabel('Activity Estimation');title('Severity Effects');hold on;
-% strLegend_s=cell(ns+1,1);
-% strLegend_s{1}='Baseline';
-% for k=1:ns
-%     actL_s=pVals_s(k,4+2*nRad+1:4+2*nRad+nSeg);
-%     plot(1:nSeg,actL_s,formats_s(k,:));
-%     strLegend_s{k+1}=sprintf('Severity=%.2f',severity(k));    
-% end
-% legend(strLegend_s);
-% hold off;
-% 
-% figure; plot(severity,dscL_s,'b*-');
-% xlabel('severity');ylabel('DSC');title('Segmentation Results');
-% 
-% figure; plot(severity,fVals_s,'b*-');
-% xlabel('severity');ylabel('fVal');title('Final Objective Function(Severity)');
+load('severity_multiNoise.mat');
+dscL_s_mean=mean(dscL_s');
+dscL_s_stderr=std(dscL_s')/sqrt(nNoise_s);
+figure;errorbar(severity,dscL_s_mean,dscL_s_stderr,'b*-');
+xlabel('severity');ylabel('DSC');title('Segmentation Results');
+
+fVals_s_mean=mean(fVals_s');
+fVals_s_stderr=std(fVals_s')/sqrt(nNoise_s);
+figure;errorbar(severity,fVals_s_mean,fVals_s_stderr,'b*-');
+xlabel('severity');ylabel('fVal');title('Final Objective Function(Severity)');
+
+actL_s=pVals_s(:,4+2*nRad+1:4+2*nRad+nSeg,:);
+actL_s_mean=mean(actL_s);
+actL_s_stderr=std(actL_s)/sqrt(nNoise_s);
+
+formats_s=['ro-';  'bo-'; 'go-'; 'mo-' ;'yo-'; 'co-'];
+figure;plot(1:nSeg,tp_s(4+2*nRad+1:4+2*nRad+nSeg),'ko-');
+xlabel('Segment Index');ylabel('Activity Estimation');title('Severity Effects');hold on;
+strLegend_s=cell(ns+1,1);
+strLegend_s{1}='Baseline';
+for k=1:ns
+    plot(1:nSeg,squeeze(actL_s_mean(1,:,k)),formats_s(k,:));
+    strLegend_s{k+1}=sprintf('Severity=%.2f',severity(k));    
+end
+legend(strLegend_s);
+hold off;
+
+figure;plot(1:nSeg,tp_s(4+2*nRad+1:4+2*nRad+nSeg),'ko-');
+xlabel('Segment Index');ylabel('Activity Estimation');title('Severity Effects');hold on;
+strLegend_s=cell(ns+1,1);
+strLegend_s{1}='Baseline';
+for k=1:ns
+    errorbar(1:nSeg,squeeze(actL_s_mean(1,:,k)),squeeze(actL_s_stderr(1,:,k)),formats_s(k,:));
+    strLegend_s{k+1}=sprintf('Severity=%.2f',severity(k));    
+end
+legend(strLegend_s);
+hold off;

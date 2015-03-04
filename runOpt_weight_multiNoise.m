@@ -63,24 +63,46 @@ for n=1:nNoise_w
     end    
 end
 
-% formats_w=['ro-';  'bo-'; 'go-'; 'mo-' ;'yo-'; 'co-'];
-% figure;plot(1:nSeg,tp_w(4+2*nRad+1:4+2*nRad+nSeg),'ko-');hold on;
-% xlabel('Segment Index');ylabel('Activity Estimation');title('Constraint Effects');
-% strLegend_w=cell(nw+1,1);
-% strLegend_w{1}='truth';
-% for k=1:nw
-%     actL_w=pVals_w(k,4+2*nRad+1:4+2*nRad+nSeg);
-%     plot(1:nSeg,actL_w,formats_w(k,:));
-%     strLegend_w{k+1}=sprintf('Shape weight=%.1f',weights(k));   
-% end
-% legend(strLegend_w);
-% hold off;
-% 
-% figure; plot(weights,dscL_w,'b*-');
-% xlabel('weight');ylabel('DSC');title('Segmentation Results');
-% 
-% figure; plot(weights,fVals_w,'b*-');
-% xlabel('Weight');ylabel('fVal');title('Final Objective Function(Weight)');
+load('weight_multiNoise.mat');
+close all;
+dscL_w_mean=mean(dscL_w);
+dscL_w_stderr=std(dscL_w)/sqrt(nNoise_w);
+figure;errorbar(weights,dscL_w_mean,dscL_w_stderr,'b*-');
+xlabel('weight');ylabel('DSC');title('Segmentation Results');
+
+fVals_w_mean=mean(fVals_w);
+fVals_w_stderr=std(fVals_w)/sqrt(nNoise_w);
+figure;errorbar(weights,fVals_w_mean,fVals_w_stderr,'b*-');
+xlabel('Weight');ylabel('fVal');title('Final Objective Function(Weight)');
+
+actL_w=pVals_w(:,:,4+2*nRad+1:4+2*nRad+nSeg);
+actL_w_mean=mean(actL_w);
+actL_w_stderr=std(actL_w)/sqrt(nNoise_w);
+
+formats_w=['ro-';  'bo-'; 'go-'; 'mo-' ;'yo-'; 'co-'];
+figure;plot(1:nSeg,tp_w(4+2*nRad+1:4+2*nRad+nSeg),'ko-');hold on;
+xlabel('Segment Index');ylabel('Activity Estimation');title('Constraint Effects');
+strLegend_w=cell(nw+1,1);
+strLegend_w{1}='truth';
+for k=1:nw
+    errorbar(1:nSeg,squeeze(actL_w_mean(:,k,:)),squeeze(actL_w_stderr(:,k,:)),formats_w(k,:));
+    %plot(1:nSeg,squeeze(actL_w_mean(:,k,:)),formats_w(k,:));
+    strLegend_w{k+1}=sprintf('Shape weight=%.1f',weights(k));   
+end
+legend(strLegend_w);
+hold off;
+
+figure;plot(1:nSeg,tp_w(4+2*nRad+1:4+2*nRad+nSeg),'ko-');hold on;
+xlabel('Segment Index');ylabel('Activity Estimation');title('Constraint Effects');
+strLegend_w=cell(nw+1,1);
+strLegend_w{1}='truth';
+for k=1:nw
+    %errorbar(1:nSeg,squeeze(actL_w_mean(:,k,:)),squeeze(actL_w_stderr(:,k,:)),formats_w(k,:));
+    plot(1:nSeg,squeeze(actL_w_mean(:,k,:)),formats_w(k,:));
+    strLegend_w{k+1}=sprintf('Shape weight=%.1f',weights(k));   
+end
+legend(strLegend_w);
+hold off;
 
 
 
