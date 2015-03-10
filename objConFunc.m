@@ -8,7 +8,8 @@ function [ val] = objConFunc(p)
 %     [p(5),p(6)] --> [p(5+2*(nRad-1), p(6+2*(nRad-1)]
 % (e) Activities of myocardium segments (#=nSeg):
 %  p(5+2*nRad)-->p(4+nSeg+2*nRad)
-global weight; % weight of the shape constraint;
+global wShape; % weight of the shape constraint;
+global wActivity;
 global nRad;
 
 % compute the variance of radii and thicknesses
@@ -18,6 +19,6 @@ for k=1:nRad
     radiusP(k)=p(5+2*(k-1));
     thicknessP(k)=p(6+2*(k-1));
 end;
-val=mseFunc(p)+weight*(var(radiusP)+var(thicknessP));
+val=mseFunc(p)+wShape*(var(radiusP)+var(thicknessP))+wActivity*actConstraint(p);
 
 end
